@@ -961,6 +961,7 @@ function carouselStopAuto() {
 function carouselPauseAndResume() {
     carouselStopAuto();
     carouselAutoTimeout = setTimeout(() => carouselStartAuto(), 15000);
+}
 
 carouselStartAuto();
 carouselWrapper.addEventListener('mouseenter', carouselStopAuto);
