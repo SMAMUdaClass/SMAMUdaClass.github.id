@@ -9,7 +9,8 @@
   <!-- FIREBASE SDK - TAMBAH INI -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc, updateDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
     const firebaseConfig = {
       apiKey: "AIzaSyA62r1xs1OfShRjraXPYyulkjDMiVe3JBg",
@@ -23,7 +24,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const guestbookRef = collection(db, "guestbook");
-
+    
     // Real-time listener - otomatis update kalau ada komentar baru
     const q = query(guestbookRef, orderBy("created_at", "desc"));
     onSnapshot(q, (snapshot) => {
@@ -31,6 +32,16 @@
       snapshot.forEach(doc => data.push(doc.data()));
       renderGuestbook(data);
     });
+    // Real-time listener untuk statistik pengunjung
+const visitorDocRef = doc(db, "visitor_stats", "total");
+onSnapshot(visitorDocRef, (docSnap) => {
+  if (docSnap.exists()) {
+    renderVisitorCount(docSnap.data().count);
+  } else {
+    renderVisitorCount(0);
+  }
+});
+
 
     // Fungsi render komentar
     window.renderGuestbook = function(guestData) {
@@ -71,8 +82,36 @@
         created_at: serverTimestamp()
       });
     };
+    // Fungsi ambil & tampilkan total pengunjung
+window.renderVisitorCount = function(count) {
+  document.getElementById('visitor-count').textContent = count.toLocaleString('id-ID');
+};
+
+// Fungsi tambah 1 kunjungan ke Firestore
+window.addVisitor = async function() {
+  try {
+    // Cek apakah sudah ada dokumen "total"
+    const totalDoc = await getDoc(doc(db, "visitor_stats", "total"));
+    
+    if (totalDoc.exists()) {
+      // Kalau sudah ada, update +1
+      await updateDoc(doc(db, "visitor_stats", "total"), {
+        count: increment(1)
+      });
+    } else {
+      // Kalau belum ada, buat dokumen baru dengan count = 1
+      await setDoc(doc(db, "visitor_stats", "total"), {
+        count: 1
+      });
+    }
+  } catch (err) {
+    console.error("Gagal update visitor:", err);
+  }
+};
+// Panggil langsung saat halaman dimuat
+window.addVisitor();
+
   </script>
-</script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <script>
     tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['DM Sans', 'sans-serif'] } } } }
@@ -184,7 +223,7 @@
         <div class="slide">
           <div class="slide-bg" id="bg-1"></div>
           <img class="slide-img" loading="lazy" 
-               src="https://images.pexels.com/photos/7628127/pexels-photo-7628127.jpeg?auto=compress&cs=tinysrgb&w=1280" 
+               src="https://images.pexels.com/photos/3571592/pexels-photo-3571592.jpeg?auto=compress&cs=tinysrgb&w=1280" 
                alt="A breathtaking view of a secluded tropical bay with clear turquoise waters and rocky cliffs.">
         </div>
         
@@ -192,7 +231,7 @@
         <div class="slide">
           <div class="slide-bg" id="bg-2"></div>
           <img class="slide-img" loading="lazy" 
-               src="https://images.pexels.com/photos/7628127/pexels-photo-7628127.jpeg?auto=compress&cs=tinysrgb&w=1280" 
+               src="https://i.ibb.co/bRrnMx0v/IMG-20251002-WA0012.jpg" 
                alt="no acses internet.">
         </div>
         
@@ -502,7 +541,8 @@
     <p id="visitor-count" class="text-4xl font-extrabold text-blue-600 dark:text-blue-400">0</p>
     <p class="text-sm text-slate-500 mt-1">Total kunjungan</p>
    </div>
-  </section><!-- Footer -->
+</section>
+<!-- Footer -->
   <footer data-template-id="footer-section" class="canva-footer px-4 py-10 mt-12" style="background: rgb(15, 23, 42);">
    <div class="max-w-4xl mx-auto text-center"><img data-template-id="footer-logo" class="canva-image w-12 h-12 mx-auto mb-3 rounded-full" loading="lazy" alt="Logo Kelas" src="https://images.pexels.com/photos/18257698/pexels-photo-18257698.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=400">
     <h3 data-template-id="footer-school" class="canva-text font-bold mb-1" style="color: rgb(226, 232, 240); font-weight: 700; font-style: normal; font-size: 19px;">SMA Muhammadiyah — Kelas XI Fase F</h3>
@@ -841,9 +881,7 @@ const darkToggle=document.getElementById('darkToggle');
 if(localStorage.getItem('dark')==='true')document.documentElement.classList.add('dark');
 darkToggle.onclick=()=>{document.documentElement.classList.toggle('dark');localStorage.setItem('dark',document.documentElement.classList.contains('dark'));};
 
-let visits=parseInt(localStorage.getItem('visits')||'0')+1;
-localStorage.setItem('visits',visits);
-document.getElementById('visitor-count').textContent=visits.toLocaleString();
+
 
 const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.1});
 document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
@@ -983,7 +1021,6 @@ document.addEventListener('keydown', (e) => {
         closeCarouselLightbox();
     }
 });
-
 
 lucide.createIcons();
 </script>
