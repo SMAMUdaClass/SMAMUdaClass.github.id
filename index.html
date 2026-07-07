@@ -82,34 +82,46 @@ onSnapshot(visitorDocRef, (docSnap) => {
         created_at: serverTimestamp()
       });
     };
-    // Fungsi ambil & tampilkan total pengunjung
-window.renderVisitorCount = function(count) {
-  document.getElementById('visitor-count').textContent = count.toLocaleString('id-ID');
-};
-
-// Fungsi tambah 1 kunjungan ke Firestore
+// ===== VISITOR COUNTER DENGAN LOCALSTORAGE =====
+// Counter global dari Firestore (read-only) + counter per-device dari localStorage
 window.addVisitor = async function() {
-  try {
-    // Cek apakah sudah ada dokumen "total"
-    const totalDoc = await getDoc(doc(db, "visitor_stats", "total"));
+  // Cek apakah user sudah pernah mengunjungi hari ini
+  const today = new Date().toDateString();
+  const lastVisit = localStorage.getItem('lastVisit');
+  
+  if (lastVisit !== today) {
+    // Update local counter
+    let localCount = parseInt(localStorage.getItem('visitorCount') || '0');
+    localCount++;
+    localStorage.setItem('visitorCount', localCount);
+    localStorage.setItem('lastVisit', today);
     
-    if (totalDoc.exists()) {
-      // Kalau sudah ada, update +1
-      await updateDoc(doc(db, "visitor_stats", "total"), {
-        count: increment(1)
-      });
-    } else {
-      // Kalau belum ada, buat dokumen baru dengan count = 1
-      await setDoc(doc(db, "visitor_stats", "total"), {
-        count: 1
-      });
+    // Coba update Firestore (mungkin gagal karena aturan, tapi tidak masalah)
+    try {
+      const totalDoc = await getDoc(doc(db, "visitor_stats", "total"));
+      if (totalDoc.exists()) {
+        await updateDoc(doc(db, "visitor_stats", "total"), {
+          count: increment(1)
+        });
+      }
+    } catch (err) {
+      // Gagal update Firestore karena aturan, abaikan saja
+      console.log("Counter Firestore read-only, menggunakan localStorage");
     }
-  } catch (err) {
-    console.error("Gagal update visitor:", err);
   }
 };
-// Panggil langsung saat halaman dimuat
+
+// Tampilkan counter (gabungan Firestore + local)
+window.renderVisitorCount = function(count) {
+  const localCount = parseInt(localStorage.getItem('visitorCount') || '0');
+  const displayCount = (typeof count === 'number' ? count : 0) + localCount;
+  document.getElementById('visitor-count').textContent = displayCount.toLocaleString('id-ID');
+};
+
+// Panggil saat halaman dimuat
 window.addVisitor();
+// ============================================
+
 
   </script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
