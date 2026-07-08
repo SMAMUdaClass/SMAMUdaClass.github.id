@@ -549,9 +549,9 @@ window.addVisitor();
    <h2 data-template-id="guestbook-heading" class="canva-text text-2xl font-bold mb-6 text-center" style="color: rgb(30, 58, 95); font-weight: 700; font-style: normal; font-size: 24px;">📝 Buku Tamu</h2>
    <div data-template-id="guestbook-card" class="canva-card rounded-2xl p-6 shadow-lg dark:dark-card" style="background: rgb(255, 255, 255);">
     <form id="guest-form" class="space-y-4">
-     <div><label data-template-id="guest-name-label" for="guest-name" class="canva-text block text-sm font-medium mb-1" style="color: rgb(30, 58, 95); font-weight: 500; font-style: normal; font-size: 16px;">Nama</label> <input id="guest-name" type="text" required="" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Nama kamu">
+     <div><label data-template-id="guest-name-label" for="guest-name" class="canva-text block text-sm font-medium mb-1" style="color: rgb(30, 58, 95); font-weight: 500; font-style: normal; font-size: 16px;">Nama</label> <input id="guest-name" type="text" maxlength="50" rows="3" required="" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Nama kamu">
      </div>
-     <div><label data-template-id="guest-msg-label" for="guest-msg" class="canva-text block text-sm font-medium mb-1" style="color: rgb(30, 58, 95); font-weight: 500; font-style: normal; font-size: 16px;">Pesan</label> <textarea id="guest-msg" rows="3" required="" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tulis pesan..."></textarea>
+     <div><label data-template-id="guest-msg-label" for="guest-msg" class="canva-text block text-sm font-medium mb-1" style="color: rgb(30, 58, 95); font-weight: 500; font-style: normal; font-size: 16px;">Pesan</label> <textarea id="guest-msg" rows="3" maxlength="50" rows="3" required="" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tulis pesan..."></textarea>
      </div><button data-template-id="guest-submit" type="submit" onclick="handleGuestSubmit(); return false;" class="canva-button px-6 py-2 rounded-lg font-semibold transition hover:scale-105" style="background: rgb(37, 99, 235); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Kirim Pesan</button>
 
     </form>
@@ -925,6 +925,10 @@ async function handleGuestSubmit() {
   if(!name || !msg) {
     alert('Nama dan pesan wajib diisi!');
     return;
+  }
+  if(msg.length > 50) {
+      alert('pesan tidak boleh lebih dari 50 karakter!)
+            return;
   }
   
   document.getElementById('guest-loading').classList.remove('hidden');
